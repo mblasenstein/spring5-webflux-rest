@@ -9,6 +9,7 @@ import org.mockito.BDDMockito;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.reactivestreams.Publisher;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -17,6 +18,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 
 @ExtendWith(MockitoExtension.class)
@@ -67,5 +69,41 @@ class CategoryControllerTest {
                 .uri("/api/v1/categories/abc")
                 .exchange()
                 .expectBody(Category.class);
+    }
+
+    @Test
+    void create() {
+        Category category4 = new Category();
+        category4.setDescription("Category 4");
+
+        BDDMockito.given(categoryRepository.saveAll(any(Publisher.class)))
+                .willReturn(Flux.just(new Category()));
+
+        Mono<Category> catToSaveMono = Mono.just(category4);
+
+        webTestClient.post()
+                .uri("/api/v1/categories/")
+                .body(catToSaveMono, Category.class)
+                .exchange()
+                .expectStatus()
+                .isCreated();
+    }
+
+    @Test
+    void update() {
+        Category category5 = new Category();
+        category5.setDescription("Category 5");
+
+        BDDMockito.given(categoryRepository.save(any(Category.class)))
+                .willReturn(Mono.just(new Category()));
+
+        Mono<Category> catToUpdateMono = Mono.just(category5);
+
+        webTestClient.put()
+                .uri("/api/v1/categories/abc")
+                .body(catToUpdateMono, Category.class)
+                .exchange()
+                .expectStatus()
+                .isOk();
     }
 }
