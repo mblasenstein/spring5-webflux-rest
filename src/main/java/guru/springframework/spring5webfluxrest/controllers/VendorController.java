@@ -56,7 +56,7 @@ public class VendorController {
                     }
                     return entityBeingPatched;
                 })
-                .doOnNext(patchedEntity ->
+                .flatMap(patchedEntity ->
                         vendorRepository.save(patchedEntity)
                                 .map(savedEntity -> savedEntity));
     }
